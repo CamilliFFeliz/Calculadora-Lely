@@ -1,0 +1,55 @@
+{
+  "id": "./index.html",
+  "name": "Lely Sublimação",
+  "short_name": "Lely",
+  "description": "PWA offline para controle de estoque e geração de orçamentos de gráfica de sublimação.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#FBF8FF",
+  "theme_color": "#B784F3",
+  "categories": ["business", "productivity", "finance"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Abrir estoque",
+      "short_name": "Estoque",
+      "description": "Abrir o aplicativo para gerenciar materiais.",
+      "url": "./index.html#estoque",
+      "icons": [
+        {
+          "src": "icons/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml",
+          "purpose": "any maskable"
+        }
+      ]
+    },
+    {
+      "name": "Criar orçamento",
+      "short_name": "Orçamento",
+      "description": "Abrir o aplicativo para montar um orçamento.",
+      "url": "./index.html#orcamento",
+      "icons": [
+        {
+          "src": "icons/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml",
+          "purpose": "any maskable"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta id="themeColorMeta" name="theme-color" content="#FBF8FF" />
+  <meta name="description" content="Lely Sublimação: PWA para controle de estoque e geração de orçamentos de gráfica de sublimação." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Lely Sublimação" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Lely Sublimação</title>
+</head>
+<body>
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+
+  <aside class="sidebar" id="sidebar" aria-label="Menu lateral principal">
+    <div class="brand-block">
+      <img class="brand-logo" src="icons/icon.svg" width="52" height="52" alt="" aria-hidden="true" />
+      <div>
+        <strong>Lely Sublimação</strong>
+        <span>Estoque e orçamentos acessíveis</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Navegação">
+      <button class="nav-link is-active" type="button" data-screen-target="home">
+        <span aria-hidden="true"><i data-lucide="home"></i></span>
+        Início
+      </button>
+      <button class="nav-link" type="button" data-screen-target="inventory">
+        <span aria-hidden="true"><i data-lucide="box"></i></span>
+        Estoque
+      </button>
+      <button class="nav-link" type="button" data-screen-target="budget">
+        <span aria-hidden="true"><i data-lucide="receipt"></i></span>
+        Orçamento
+      </button>
+    </nav>
+
+    <section class="sidebar-tools" aria-label="Ferramentas de backup">
+      <span>Backup</span>
+      <button class="sidebar-tool-button" id="exportInventoryBackupButton" type="button"><i data-lucide="download" aria-hidden="true"></i>Exportar JSON</button>
+      <button class="sidebar-tool-button" id="importInventoryBackupButton" type="button"><i data-lucide="upload" aria-hidden="true"></i>Importar JSON</button>
+      <button class="sidebar-tool-button is-danger" id="restoreReferenceStockButton" type="button"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Restaurar Estoque Base</button>
+      <input id="inventoryBackupFileInput" type="file" accept="application/json,.json" hidden />
+      <p class="sidebar-status" id="backupStatus" aria-live="polite"></p>
+    </section>
+
+    <div class="sidebar-footer">
+      <span>LocalStorage + IndexedDB</span>
+      <strong>Dados salvos neste navegador</strong>
+    </div>
+  </aside>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-button mobile-menu-button" id="openSidebarButton" type="button" aria-label="Abrir menu lateral"><i data-lucide="menu" aria-hidden="true"></i></button>
+      <div class="topbar-title">
+        <span id="pageEyebrow">Visão geral</span>
+        <h1 id="pageTitle">Início</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="secondary-button install-app-button" id="installAppButton" type="button" hidden>
+          <i data-lucide="smartphone" aria-hidden="true"></i>
+          <span>Instalar</span>
+        </button>
+        <button class="primary-button compact-only" id="quickNewItemButton" type="button"><i data-lucide="plus" aria-hidden="true"></i>Novo item</button>
+      </div>
+    </header>
+
+    <main class="content-shell">
+      <section class="screen-panel is-active" id="homeScreen" data-screen="home" aria-labelledby="homeTitle">
+        <div class="hero-grid">
+          <section class="hero-card glass-panel">
+            <div class="home-logo-slot" aria-label="Espaço para a logo da gráfica">
+              <img class="home-logo-image" src="icons/icon.svg" width="112" height="112" alt="Logo Lely Sublimação" />
+              <span>Logo oficial do aplicativo</span>
+            </div>
+            <span class="eyebrow">Gráfica de sublimação</span>
+            <h2 id="homeTitle">Escolha uma opção para começar.</h2>
+            <p>Use botões grandes e diretos para organizar o estoque ou criar um orçamento.</p>
+            <div class="action-row home-main-actions">
+              <button class="primary-button" type="button" data-home-action="inventory"><i data-lucide="package-plus" aria-hidden="true"></i>Organizar estoque</button>
+              <button class="secondary-button" type="button" data-home-action="budget"><i data-lucide="calculator" aria-hidden="true"></i>Criar orçamento</button>
+            </div>
+          </section>
+
+          <aside class="flow-card glass-panel" aria-label="Como funciona" hidden>
+            <div class="flow-header">
+              <span>Manual de uso</span>
+              <strong>3 passos</strong>
+            </div>
+            <article>
+              <strong>1</strong>
+              <div>
+                <h3>Vá em Estoque</h3>
+                <p>Preencha os valores dos seus materiais, como tintas, papéis, peças lisas e embalagens.</p>
+              </div>
+            </article>
+            <article>
+              <strong>2</strong>
+              <div>
+                <h3>Monte o pedido</h3>
+                <p>Na aba Orçamento, escolha as peças e insumos que serão usados no serviço.</p>
+              </div>
+            </article>
+            <article>
+              <strong>3</strong>
+              <div>
+                <h3>Gere o PDF</h3>
+                <p>Ajuste lucro ou desconto e envie um orçamento bonito direto para o cliente.</p>
+              </div>
+            </article>
+          </aside>
+        </div>
+
+        <section class="quick-stats-grid" aria-label="Resumo rápido do aplicativo" hidden>
+          <article class="quick-stat-card">
+            <span>Itens no estoque</span>
+            <strong id="homeInventoryCount">0</strong>
+            <small>materiais cadastrados</small>
+          </article>
+          <article class="quick-stat-card">
+            <span>Valor em estoque</span>
+            <strong id="homeStockValue">R$ 0,00</strong>
+            <small>custos preenchidos</small>
+          </article>
+          <article class="quick-stat-card">
+            <span>Orçamentos</span>
+            <strong id="homeBudgetCount">0</strong>
+            <small>fichas preenchidas</small>
+          </article>
+          <article class="quick-stat-card is-warning">
+            <span>Reposição</span>
+            <strong id="homeLowStockCount">0</strong>
+            <small>itens para conferir</small>
+          </article>
+        </section>
+
+        <section class="feature-grid" aria-label="Recursos do aplicativo" hidden>
+          <article class="feature-card">
+            <span>Insumos de impressão</span>
+            <strong>Uso por fração</strong>
+            <p>Tintas, papéis e filmes podem ser calculados por ml, folha ou metro.</p>
+          </article>
+          <article class="feature-card">
+            <span>Peças lisas</span>
+            <strong>Custo por unidade</strong>
+            <p>Canecas, camisetas, calças, ecobags, cuecas e bolsas entram no orçamento de forma direta.</p>
+          </article>
+          <article class="feature-card">
+            <span>PDF profissional</span>
+            <strong>Com imagem da arte</strong>
+            <p>Inclui cliente, materiais, mão de obra, lucro, desconto e referência visual.</p>
+          </article>
+        </section>
+      </section>
+
+      <section class="screen-panel" id="reportsScreen" data-screen="reports" aria-labelledby="reportsTitle">
+        <div class="section-header">
+          <div>
+            <span>Visão financeira da gráfica</span>
+            <h2 id="reportsTitle">Relatórios</h2>
+          </div>
+          <strong class="counter-pill" id="reportsInventoryCounter">0 de 0</strong>
+        </div>
+
+        <section class="dashboard-grid" aria-label="Indicadores principais">
+          <article class="report-card report-card-feature">
+            <span>Investimento total em estoque</span>
+            <strong id="dashboardTotalInvestedValue">R$ 0,00</strong>
+            <p>Somatório financeiro do estoque cadastrado, considerando o custo preenchido e a quantidade em estoque.</p>
+          </article>
+          <article class="report-card">
+            <span>Categoria com maior investimento</span>
+            <strong id="dashboardTopCategoryName">Sem valores</strong>
+            <p id="dashboardTopCategoryValue">R$ 0,00 alocado nesta categoria.</p>
+          </article>
+          <article class="report-card">
+            <span>Orçamentos gerados</span>
+            <strong id="dashboardBudgetCount">0</strong>
+            <p id="dashboardBudgetInsight">Nenhum orçamento preenchido ainda.</p>
+          </article>
+        </section>
+
+        <section class="report-chart-card glass-panel" aria-labelledby="categoryChartTitle">
+          <div class="section-mini-header">
+            <div>
+              <span>Distribuição por categoria</span>
+              <h3 id="categoryChartTitle">Investimento do estoque</h3>
+            </div>
+          </div>
+          <div class="report-chart" id="dashboardCategoryChart"></div>
+        </section>
+      </section>
+
+      <section class="screen-panel" id="inventoryScreen" data-screen="inventory" aria-labelledby="inventoryTitle">
+        <div class="section-header">
+          <div>
+            <span>Banco local de materiais</span>
+            <h2 id="inventoryTitle">Estoque</h2>
+          </div>
+          <div class="header-actions">
+            <strong class="counter-pill" id="inventoryCounter">0 itens</strong>
+            <button class="primary-button" id="openItemModalButton" type="button"><i data-lucide="plus" aria-hidden="true"></i>Novo item</button>
+          </div>
+        </div>
+
+        <div class="toolbar-grid">
+          <label class="search-field">
+            <span>Pesquisar no estoque</span>
+            <input id="inventorySearchInput" type="search" placeholder="Caneca, camiseta, tinta, papel, fita ou embalagem" />
+          </label>
+          <button class="secondary-button" id="clearInventorySearchButton" type="button"><i data-lucide="x" aria-hidden="true"></i>Limpar</button>
+        </div>
+
+        <section class="chip-row" id="inventoryCategoryFilters" aria-label="Filtros de categoria do estoque"></section>
+        <section class="inventory-grid" id="inventoryGrid" aria-label="Itens cadastrados"></section>
+      </section>
+
+      <section class="screen-panel" id="budgetScreen" data-screen="budget" aria-labelledby="budgetTitle">
+        <div class="section-header">
+          <div>
+            <span>Ficha de orçamento</span>
+            <h2 id="budgetTitle">Orçamento</h2>
+          </div>
+          <strong class="counter-pill" id="budgetCounter">0 itens</strong>
+        </div>
+
+        <div class="budget-layout">
+          <section class="budget-form-card glass-panel" aria-label="Dados do orçamento">
+            <div class="budget-details-grid">
+              <label class="form-field budget-field-full">
+                <span><i data-lucide="file-text" aria-hidden="true"></i>Nome do orçamento</span>
+                <input id="budgetNameInput" type="text" placeholder="Ex: Canecas Dia das Mães" />
+              </label>
+              <label class="form-field budget-field-full">
+                <span><i data-lucide="user" aria-hidden="true"></i>Cliente</span>
+                <input id="clientNameInput" type="text" placeholder="Ex: Mariana Souza" />
+              </label>
+              <label class="form-field budget-field-compact">
+                <span><i data-lucide="hand-coins" aria-hidden="true"></i>Mão de obra</span>
+                <input id="hourlyRateInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="80,00" />
+              </label>
+              <label class="form-field budget-field-compact">
+                <span><i data-lucide="hash" aria-hidden="true"></i>Qtd. peças</span>
+                <input id="sessionDurationInput" type="number" inputmode="decimal" min="0" step="1" placeholder="1" />
+              </label>
+              <label class="form-field budget-field-compact">
+                <span><i data-lucide="trending-up" aria-hidden="true"></i>Lucro</span>
+                <div class="inline-input-group">
+                  <input id="profitMarginInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="30" />
+                  <select id="profitMarginTypeSelect" aria-label="Tipo de margem de lucro">
+                    <option value="percent">%</option>
+                    <option value="fixed">R$</option>
+                  </select>
+                </div>
+              </label>
+              <label class="form-field budget-field-compact">
+                <span><i data-lucide="badge-percent" aria-hidden="true"></i>Desconto</span>
+                <div class="inline-input-group">
+                  <input id="discountPercentInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="10" />
+                  <select id="discountTypeSelect" aria-label="Tipo de desconto">
+                    <option value="percent">%</option>
+                    <option value="fixed">R$</option>
+                  </select>
+                </div>
+              </label>
+            </div>
+
+            <section class="image-upload-card">
+              <div>
+                <span>Imagem de referência</span>
+                <strong>Adicionar arte ao PDF</strong>
+                <p>Use uma imagem leve em PNG, JPG ou WEBP. Ela será exibida em tamanho reduzido no orçamento.</p>
+              </div>
+              <div class="image-actions">
+                <label class="secondary-button" for="referenceImageInput"><i data-lucide="image-plus" aria-hidden="true"></i>Escolher imagem</label>
+                <button class="ghost-button" id="removeReferenceImageButton" type="button"><i data-lucide="trash-2" aria-hidden="true"></i>Remover</button>
+                <input id="referenceImageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+              </div>
+              <figure class="reference-preview" id="referencePreview" hidden></figure>
+            </section>
+
+            <div class="total-grid" aria-live="polite">
+              <article>
+                <span>Materiais</span>
+                <strong id="materialTotalValue">R$ 0,00</strong>
+              </article>
+              <article>
+                <span>Mão de obra</span>
+                <strong id="laborTotalValue">R$ 0,00</strong>
+              </article>
+              <article class="total-feature">
+                <span>Total de custo</span>
+                <strong id="budgetTotalValue">R$ 0,00</strong>
+              </article>
+              <article class="suggested-price-card">
+                <span>Valor original</span>
+                <strong id="suggestedPriceValue">R$ 0,00</strong>
+              </article>
+              <article class="discount-card">
+                <span>Desconto aplicado</span>
+                <strong id="discountAmountValue">R$ 0,00</strong>
+              </article>
+              <article class="final-price-card">
+                <span>Valor final</span>
+                <strong id="finalPriceValue">R$ 0,00</strong>
+              </article>
+            </div>
+
+            <div class="action-row end-actions">
+              <button class="secondary-button" id="duplicateBudgetButton" type="button"><i data-lucide="copy" aria-hidden="true"></i>Duplicar orçamento</button>
+              <button class="secondary-button" id="newBudgetButton" type="button"><i data-lucide="file-plus" aria-hidden="true"></i>Novo orçamento</button>
+              <button class="primary-button" id="exportPdfButton" type="button" aria-label="Gerar PDF interno com custos do pedido"><i data-lucide="file-down" aria-hidden="true"></i>Gerar PDF interno</button>
+              <button class="secondary-button client-pdf-button" id="clientExportPdfButton" type="button" aria-label="Gerar PDF para o cliente final"><i data-lucide="file-heart" aria-hidden="true"></i>Gerar PDF para Cliente</button>
+            </div>
+          </section>
+
+          <section class="budget-picker-card stock-picker-panel glass-panel" aria-labelledby="pickerTitle">
+            <div class="section-mini-header">
+              <div>
+                <span>Disponíveis no estoque</span>
+                <h3 id="pickerTitle">Escolha o que será usado</h3>
+              </div>
+              <button class="secondary-button" id="clearBudgetSearchButton" type="button"><i data-lucide="x" aria-hidden="true"></i>Limpar busca</button>
+            </div>
+
+            <label class="search-field inside-card">
+              <span>Pesquisar</span>
+              <input id="budgetSearchInput" type="search" placeholder="Ex: caneca, camiseta, fita, embalagem, tinta ciano" />
+            </label>
+
+            <section class="chip-row compact-chip-row" id="budgetCategoryFilters" aria-label="Filtros de categoria para orçamento"></section>
+            <section class="picker-list" id="stockPickerList" aria-label="Itens disponíveis para orçamento"></section>
+          </section>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <button class="order-slip-fab" id="cartFabButton" type="button" aria-label="Abrir fichinha do orçamento" hidden>
+    <i data-lucide="clipboard-list" aria-hidden="true"></i>
+    <span class="cart-fab-badge" id="cartFabBadge">0</span>
+    <strong class="cart-total-reader" id="cartFabTotal">R$ 0,00</strong>
+    <span class="visually-hidden">Abrir fichinha do orçamento</span>
+  </button>
+
+  <div class="cart-sheet-backdrop" id="cartSheetBackdrop" hidden></div>
+  <section class="cart-card budget-cart-panel cart-sheet glass-panel" id="cartSheet" aria-labelledby="cartTitle" aria-modal="true" role="dialog" hidden>
+    <div class="section-mini-header cart-section-header">
+      <div>
+        <span>Itens no orçamento</span>
+        <h3 id="cartTitle">Fichinha atual</h3>
+      </div>
+      <button class="icon-button" id="closeCartSheetButton" type="button" aria-label="Fechar fichinha"><i data-lucide="x" aria-hidden="true"></i></button>
+    </div>
+    <button class="secondary-button clear-cart-button" id="clearCartButton" type="button"><i data-lucide="eraser" aria-hidden="true"></i>Limpar fichinha</button>
+    <section class="cart-list" id="cartList" aria-label="Itens adicionados à fichinha do orçamento"></section>
+  </section>
+
+  <section class="mobile-budget-summary" id="mobileBudgetSummary" aria-label="Ações rápidas do orçamento" aria-live="polite" hidden>
+    <div class="mobile-summary-total">
+      <span>Valor final</span>
+      <strong id="mobileBudgetSummaryValue">R$ 0,00</strong>
+      <small id="mobileBudgetSummaryCount">0 itens na fichinha</small>
+    </div>
+    <div class="mobile-summary-actions">
+      <button class="secondary-button" id="mobileDuplicateBudgetButton" type="button" aria-label="Duplicar orçamento atual">
+        <i data-lucide="copy" aria-hidden="true"></i>
+        Duplicar
+      </button>
+      <button class="secondary-button" id="mobileNewBudgetButton" type="button" aria-label="Criar novo orçamento">
+        <i data-lucide="file-plus" aria-hidden="true"></i>
+        Novo
+      </button>
+      <button class="secondary-button client-pdf-button" id="mobileClientPdfButton" type="button" aria-label="Gerar PDF para o cliente final">
+        <i data-lucide="file-heart" aria-hidden="true"></i>
+        Cliente
+      </button>
+      <button class="primary-button" id="mobileExportPdfButton" type="button" aria-label="Gerar PDF interno com custos do pedido">
+        <i data-lucide="file-down" aria-hidden="true"></i>
+        Interno
+      </button>
+    </div>
+  </section>
+
+  <nav class="bottom-nav" aria-label="Navegação rápida">
+    <button class="nav-link is-active" type="button" data-screen-target="home">
+      <span aria-hidden="true"><i data-lucide="home"></i></span>
+      Início
+    </button>
+    <button class="nav-link" type="button" data-screen-target="inventory">
+      <span aria-hidden="true"><i data-lucide="box"></i></span>
+      Estoque
+    </button>
+    <button class="nav-link" type="button" data-screen-target="budget">
+      <span aria-hidden="true"><i data-lucide="receipt"></i></span>
+      Orçamento
+    </button>
+  </nav>
+
+  <dialog class="app-modal" id="itemModal" aria-labelledby="itemModalTitle">
+    <form class="modal-card" id="itemForm" autocomplete="off">
+      <div class="modal-header">
+        <div>
+          <span id="itemModalEyebrow">Novo item</span>
+          <h2 id="itemModalTitle">Cadastrar item</h2>
+        </div>
+        <button class="icon-button" id="closeItemModalButton" type="button" aria-label="Fechar modal"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+
+      <section class="form-step-panel">
+        <div class="step-heading">
+          <strong>Etapa 1</strong>
+          <span>Escolha a categoria principal</span>
+        </div>
+        <div class="category-choice-grid" id="categoryChoiceGrid" aria-label="Categorias de cadastro"></div>
+      </section>
+
+      <section class="form-step-panel">
+        <div class="step-heading">
+          <strong>Etapa 2</strong>
+          <span id="dynamicFormTitle">Preencha a ficha do item</span>
+        </div>
+        <div class="dynamic-fields-grid" id="dynamicFieldsGrid"></div>
+      </section>
+
+      <section class="unit-cost-preview" id="unitCostPreview" aria-live="polite">
+        <span>Prévia do cálculo</span>
+        <strong>R$ 0,00</strong>
+      </section>
+
+      <div class="modal-actions">
+        <button class="secondary-button" id="resetItemFormButton" type="button"><i data-lucide="eraser" aria-hidden="true"></i>Limpar formulário</button>
+        <button class="primary-button full-button" id="saveItemButton" type="submit"><i data-lucide="save" aria-hidden="true"></i>Salvar item</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
